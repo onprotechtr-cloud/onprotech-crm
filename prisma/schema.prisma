@@ -1,0 +1,615 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SATIS
+  MUHASEBE
+  TEKNISYEN
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+enum AppointmentStatus {
+  PLANNED
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceStatus {
+  BEKLEMEDE
+  ATANDI
+  YOLDA
+  BASLADIM
+  TAMAMLANDI
+  IPTAL
+}
+
+enum ServiceType {
+  KURULUM
+  BAKIM
+  ARIZA
+  REVIZYON
+  KONTROL
+}
+
+enum EmployeeStatus {
+  AKTIF
+  IZINLI
+  AYRILDI
+}
+
+enum SalaryPeriod {
+  AYLIK
+  YILLIK
+}
+
+enum LeaveType {
+  YILLIK_IZIN
+  HASTALIK
+  MAZERET
+  DIGER
+}
+
+enum LeaveStatus {
+  BEKLEMEDE
+  ONAYLANDI
+  REDDEDILDI
+}
+
+enum AttendanceStatus {
+  NORMAL
+  GEC_KALMA
+  ERKEN_CIKIS
+  IZINLI
+}
+
+enum WorkPlanPriority {
+  DUSUK
+  NORMAL
+  YUKSEK
+  ACIL
+}
+
+enum WorkPlanStatus {
+  YAPILACAK
+  DEVAM_EDIYOR
+  TAMAMLANDI
+  IPTAL
+}
+
+enum TicketStatus {
+  ACIK
+  YANIT_BEKLENIYOR
+  COZULDU
+  KAPANDI
+}
+
+enum TicketPriority {
+  DUSUK
+  NORMAL
+  YUKSEK
+  ACIL
+}
+
+// === FINANCIAL MODULE ENUMS ===
+
+enum InvoiceType {
+  SATIS
+  ALIS
+}
+
+enum InvoiceStatus {
+  TASLAK
+  GONDERILDI
+  ODENDI
+  GECIKTI
+  IPTAL
+}
+
+enum SubscriptionType {
+  AYLIK
+  YILLIK
+}
+
+enum SubscriptionStatus {
+  AKTIF
+  PASIF
+  IPTAL
+  SURESI_DOLDU
+}
+
+enum PaymentStatus {
+  ODENDI
+  BEKLEMEDE
+  BASARISIZ
+}
+
+enum PaymentMethod {
+  NAKIT
+  HAVALE
+  KREDI_KARTI
+}
+
+enum AccountType {
+  KASA
+  BANKA
+}
+
+enum TransactionType {
+  GELIR
+  GIDER
+}
+
+enum ExpenseStatus {
+  BEKLEMEDE
+  ONAYLANDI
+  REDDEDILDI
+}
+
+model User {
+  id               String          @id @default(cuid())
+  name             String
+  email            String          @unique
+  password         String
+  role             UserRole        @default(SATIS)
+  phone            String?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  quotes           Quote[]
+  appointments     Appointment[]
+  serviceOrders    ServiceOrder[]
+  stockTransfers   StockTransfer[]
+  employee         Employee?
+  assignedWorkPlans WorkPlan[]     @relation("AssignedTo")
+  createdWorkPlans  WorkPlan[]     @relation("CreatedBy")
+  approvedLeaves    LeaveRequest[] @relation("ApprovedBy")
+  assignedTickets   Ticket[]       @relation("AssignedTickets")
+  createdTickets    Ticket[]       @relation("CreatedTickets")
+  ticketMessages    TicketMessage[]
+  invoices          Invoice[]
+  expensesCreated   Expense[]      @relation("ExpenseCreatedBy")
+  expensesApproved  Expense[]      @relation("ExpenseApprovedBy")
+}
+
+model Customer {
+  id            String         @id @default(cuid())
+  name          String
+  company       String?
+  email         String?
+  phone         String?
+  address       String?
+  city          String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  quotes        Quote[]
+  appointments  Appointment[]
+  serviceOrders ServiceOrder[]
+  workPlans     WorkPlan[]
+  tickets       Ticket[]
+  invoices      Invoice[]
+  subscriptions Subscription[]
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  name            String
+  code            String           @unique
+  description     String?
+  category        String?
+  unit            String
+  unitPrice       Float
+  currency        String           @default("TRY")
+  stockQuantity   Float            @default(0)
+  minStockLevel   Float            @default(5)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  quoteItems      QuoteItem[]
+  serviceParts    ServicePart[]
+  warehouseStocks WarehouseStock[]
+  stockTransfers  StockTransfer[]
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  quoteNumber String      @unique
+  customerId  String
+  userId      String
+  date        DateTime
+  validUntil  DateTime
+  status      QuoteStatus @default(DRAFT)
+  currency    String      @default("TRY")
+  subtotal    Float
+  taxRate     Float
+  taxAmount   Float
+  discount    Float       @default(0)
+  total       Float
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       QuoteItem[]
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  productId   String?
+  productName String
+  description String?
+  quantity    Float
+  unit        String
+  unitPrice   Float
+  currency    String   @default("TRY")
+  total       Float
+  order       Int
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id])
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  title      String
+  customerId String
+  userId     String
+  date       DateTime
+  startTime  String
+  endTime    String
+  location   String?
+  status     AppointmentStatus @default(PLANNED)
+  notes      String?
+  color      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  customer   Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceOrder {
+  id               String        @id @default(cuid())
+  orderNumber      String        @unique
+  customerId       String
+  assignedToId     String?
+  type             ServiceType
+  status           ServiceStatus @default(BEKLEMEDE)
+  priority         String        @default("NORMAL")
+  title            String
+  description      String?
+  scheduledDate    DateTime?
+  scheduledTime    String?
+  completedDate    DateTime?
+  location         String?
+  customerNotes    String?
+  technicianNotes  String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  customer         Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  assignedTo       User?         @relation(fields: [assignedToId], references: [id])
+  usedParts        ServicePart[]
+}
+
+model ServicePart {
+  id             String       @id @default(cuid())
+  serviceOrderId String
+  productId      String
+  quantity       Float
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
+}
+
+model Warehouse {
+  id             String           @id @default(cuid())
+  name           String
+  type           String           @default("MERKEZ")
+  description    String?
+  address        String?
+  responsible    String?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  stocks         WarehouseStock[]
+  transfersFrom  StockTransfer[]  @relation("TransferFrom")
+  transfersTo    StockTransfer[]  @relation("TransferTo")
+}
+
+model WarehouseStock {
+  id          String    @id @default(cuid())
+  warehouseId String
+  productId   String
+  quantity    Float     @default(0)
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id])
+
+  @@unique([warehouseId, productId])
+}
+
+model StockTransfer {
+  id               String    @id @default(cuid())
+  transferNumber   String    @unique
+  fromWarehouseId  String
+  toWarehouseId    String
+  productId        String
+  quantity         Float
+  status           String    @default("BEKLEMEDE")
+  notes            String?
+  createdById      String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  fromWarehouse    Warehouse @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouse      Warehouse @relation("TransferTo", fields: [toWarehouseId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
+  createdBy        User      @relation(fields: [createdById], references: [id])
+}
+
+model Employee {
+  id               String         @id @default(cuid())
+  userId           String?        @unique
+  firstName        String
+  lastName         String
+  email            String         @unique
+  phone            String?
+  department       String
+  position         String
+  startDate        DateTime
+  salary           Float
+  salaryPeriod     SalaryPeriod   @default(AYLIK)
+  status           EmployeeStatus @default(AKTIF)
+  address          String?
+  emergencyContact String?
+  emergencyPhone   String?
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  user             User?          @relation(fields: [userId], references: [id])
+  leaveRequests    LeaveRequest[]
+  attendance       Attendance[]
+}
+
+model LeaveRequest {
+  id           String      @id @default(cuid())
+  employeeId   String
+  type         LeaveType
+  startDate    DateTime
+  endDate      DateTime
+  totalDays    Int
+  status       LeaveStatus @default(BEKLEMEDE)
+  reason       String?
+  approvedById String?
+  createdAt    DateTime    @default(now())
+  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  approvedBy   User?       @relation("ApprovedBy", fields: [approvedById], references: [id])
+}
+
+model Attendance {
+  id         String           @id @default(cuid())
+  employeeId String
+  date       DateTime
+  checkIn    String?
+  checkOut   String?
+  totalHours Float?
+  status     AttendanceStatus @default(NORMAL)
+  notes      String?
+  createdAt  DateTime         @default(now())
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model WorkPlan {
+  id            String           @id @default(cuid())
+  title         String
+  description   String?
+  assignedToId  String?
+  customerId    String?
+  priority      WorkPlanPriority @default(NORMAL)
+  status        WorkPlanStatus   @default(YAPILACAK)
+  dueDate       DateTime?
+  completedDate DateTime?
+  category      String?
+  notes         String?
+  createdById   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  assignedTo    User?            @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdBy     User             @relation("CreatedBy", fields: [createdById], references: [id])
+  customer      Customer?        @relation(fields: [customerId], references: [id])
+}
+
+model CompanySettings {
+  id              String   @id @default(cuid())
+  companyName     String   @default("ONPROTECH")
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  taxNumber       String?
+  taxOffice       String?
+  logo            String?
+  website         String?
+  defaultCurrency String   @default("TRY")
+  defaultTaxRate  Float    @default(20)
+  invoicePrefix   String   @default("INV")
+  quotePrefix     String   @default("ONP")
+  servicePrefix   String   @default("SRV")
+  updatedAt       DateTime @updatedAt
+}
+
+model Ticket {
+  id           String         @id @default(cuid())
+  ticketNumber String         @unique
+  customerId   String
+  createdById  String
+  assignedToId String?
+  subject      String
+  status       TicketStatus   @default(ACIK)
+  priority     TicketPriority @default(NORMAL)
+  category     String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  customer     Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy    User           @relation("CreatedTickets", fields: [createdById], references: [id])
+  assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  messages     TicketMessage[]
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderId   String
+  message    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender     User     @relation(fields: [senderId], references: [id])
+}
+
+// === FINANCIAL MODELS ===
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  customerId      String
+  userId          String
+  type            InvoiceType   @default(SATIS)
+  date            DateTime
+  dueDate         DateTime
+  status          InvoiceStatus @default(TASLAK)
+  currency        String        @default("TRY")
+  subtotal        Float
+  taxRate         Float         @default(20)
+  taxAmount       Float
+  discount        Float         @default(0)
+  total           Float
+  paidAmount      Float         @default(0)
+  remainingAmount Float         @default(0)
+  notes           String?
+  sourceQuoteId   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           InvoiceItem[]
+  transactions    Transaction[]
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  productName String
+  description String?
+  quantity    Float
+  unit        String
+  unitPrice   Float
+  taxRate     Float    @default(20)
+  total       Float
+  order       Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  customerId      String
+  planName        String
+  description     String?
+  type            SubscriptionType   @default(AYLIK)
+  amount          Float
+  currency        String             @default("TRY")
+  startDate       DateTime
+  endDate         DateTime
+  nextBillingDate DateTime
+  status          SubscriptionStatus @default(AKTIF)
+  autoRenew       Boolean            @default(true)
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  customer        Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments        SubscriptionPayment[]
+  transactions    Transaction[]
+}
+
+model SubscriptionPayment {
+  id             String        @id @default(cuid())
+  subscriptionId String
+  amount         Float
+  currency       String        @default("TRY")
+  paymentDate    DateTime
+  status         PaymentStatus @default(ODENDI)
+  method         PaymentMethod @default(HAVALE)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model CashAccount {
+  id            String          @id @default(cuid())
+  name          String
+  type          AccountType     @default(KASA)
+  bankName      String?
+  accountNumber String?
+  iban          String?
+  currency      String          @default("TRY")
+  balance       Float           @default(0)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id                    String          @id @default(cuid())
+  accountId             String
+  type                  TransactionType
+  category              String
+  description           String
+  amount                Float
+  currency              String          @default("TRY")
+  date                  DateTime
+  relatedInvoiceId      String?
+  relatedSubscriptionId String?
+  createdBy             String
+  createdAt             DateTime        @default(now())
+  account               CashAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  invoice               Invoice?        @relation(fields: [relatedInvoiceId], references: [id])
+  subscription          Subscription?   @relation(fields: [relatedSubscriptionId], references: [id])
+}
+
+model ExpenseCategory {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  expenses    Expense[]
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  categoryId    String
+  title         String
+  description   String?
+  amount        Float
+  currency      String          @default("TRY")
+  date          DateTime
+  paymentMethod PaymentMethod   @default(NAKIT)
+  receipt       String?
+  createdById   String
+  status        ExpenseStatus   @default(BEKLEMEDE)
+  approvedById  String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  category      ExpenseCategory @relation(fields: [categoryId], references: [id])
+  createdBy     User            @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
+  approvedBy    User?           @relation("ExpenseApprovedBy", fields: [approvedById], references: [id])
+}
