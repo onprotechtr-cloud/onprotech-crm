@@ -1,0 +1,133 @@
+{
+  "name": "onprotech-crm",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "postinstall": "prisma generate",
+    "electron:dev": "electron electron/main.js",
+    "electron:build": "npm run build && node electron/build-icon.js && node electron/post-build.js && node electron/build.js",
+    "electron:pack": "npm run build && node electron/build-icon.js && node electron/post-build.js && node electron/build.js --dir"
+  },
+  "build": {
+    "appId": "com.onprotech.crm",
+    "productName": "ONPROTECH CRM",
+    "copyright": "Copyright © 2025 ONPROTECH",
+    "directories": {
+      "output": "release",
+      "buildResources": "electron"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "app",
+        "filter": [
+          "**/*",
+          "**/.*/**",
+          "**/.*"
+        ]
+      },
+      {
+        "from": ".next/standalone/node_modules/.prisma",
+        "to": "app/node_modules/.prisma"
+      },
+      {
+        "from": "prisma/dev.db",
+        "to": "db/seed.db"
+      }
+    ],
+    "asar": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ONPROTECH CRM",
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico"
+    }
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@fullcalendar/core": "^6.1.20",
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/list": "^6.1.20",
+    "@fullcalendar/react": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
+    "@hookform/resolvers": "^3.10.0",
+    "@prisma/client": "^6.7.0",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@react-pdf/renderer": "^4.3.1",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "lucide-react": "^0.511.0",
+    "next": "14.2.33",
+    "next-auth": "^4.24.11",
+    "react": "18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "^7.56.4",
+    "recharts": "^3.8.1",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.17.57",
+    "@types/react": "^18.3.21",
+    "@types/react-dom": "^18.3.6",
+    "autoprefixer": "^10.4.21",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.33",
+    "png-to-ico": "^3.0.1",
+    "postcss": "^8.5.3",
+    "prisma": "^6.7.0",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
