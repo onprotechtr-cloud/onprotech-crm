@@ -146,6 +146,13 @@ export async function getProducts(search?: string) {
         }
       : undefined,
     orderBy: { name: "asc" },
+    include: {
+      warehouseStocks: {
+        include: {
+          warehouse: true,
+        },
+      },
+    },
   });
 }
 

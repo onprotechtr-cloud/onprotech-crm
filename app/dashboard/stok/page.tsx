@@ -89,7 +89,8 @@ export default async function StokPage({
                   <TableHead>Kod</TableHead>
                   <TableHead>Kategori</TableHead>
                   <TableHead>Birim Fiyat</TableHead>
-                  <TableHead>Stok</TableHead>
+                  <TableHead>Toplam Stok</TableHead>
+                  <TableHead>Depo Dagilimi</TableHead>
                   <TableHead>Min. Stok</TableHead>
                   <TableHead>Durum</TableHead>
                 </TableRow>
@@ -110,10 +111,23 @@ export default async function StokPage({
                       <TableCell data-label="Kod" className="font-mono text-xs">{p.code}</TableCell>
                       <TableCell data-label="Kategori">{p.category ?? "-"}</TableCell>
                       <TableCell data-label="Birim Fiyat">{formatCurrency(p.unitPrice, p.currency)}</TableCell>
-                      <TableCell data-label="Stok">
+                      <TableCell data-label="Toplam Stok">
                         <span className={isLow ? "font-semibold text-rose-600" : ""}>
                           {p.stockQuantity} {p.unit}
                         </span>
+                      </TableCell>
+                      <TableCell data-label="Depo Dagilimi">
+                        {p.warehouseStocks?.length > 0 ? (
+                          <div className="flex flex-col gap-1 text-xs">
+                            {p.warehouseStocks.map((ws) => (
+                              <span key={ws.warehouseId} className="text-slate-600">
+                                <span className="font-medium">{ws.warehouse.name}:</span> {ws.quantity} {p.unit}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
                       </TableCell>
                       <TableCell data-label="Min. Stok">
                         {p.minStockLevel} {p.unit}
