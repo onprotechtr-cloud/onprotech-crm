@@ -32,7 +32,30 @@ function parseForm(data: FormData) {
 
 export async function createProductAction(data: FormData) {
   const parsed = parseForm(data);
-  await prisma.product.create({ data: parsed });
+  
+  // Merkez Depo'yu bul
+  const merkezDepo = await prisma.warehouse.findFirst({
+    where: { name: { contains: "Merkez", mode: "insensitive" } },
+  });
+  
+  if (merkezDepo) {
+    // Ürünü Merkez Depo'ya bağlı olarak oluştur
+    await prisma.product.create({
+      data: {
+        ...parsed,
+        warehouseStocks: {
+          create: {
+            warehouseId: merkezDepo.id,
+            quantity: parsed.stockQuantity,
+          },
+        },
+      },
+    });
+  } else {
+    // Merkez Depo bulunamazsa sadece ürünü oluştur
+    await prisma.product.create({ data: parsed });
+  }
+  
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/stok");
   return { success: true, message: "Urun basariyla olusturuldu." };
