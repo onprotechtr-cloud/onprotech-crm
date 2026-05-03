@@ -88,10 +88,20 @@ export async function createStockTransfer(data: {
   notes?: string;
 }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return { error: "Oturum açmanız gerekiyor" };
+  console.log("Session:", session);
+  
+  if (!session?.user) {
+    console.error("No session or user");
+    return { error: "Oturum açmanız gerekiyor" };
+  }
 
   const userId = (session.user as { id?: string }).id;
-  if (!userId) return { error: "Kullanıcı ID bulunamadı" };
+  console.log("User ID:", userId);
+  
+  if (!userId) {
+    console.error("No user ID in session");
+    return { error: "Kullanıcı ID bulunamadı" };
+  }
 
   // Check source stock
   const fromStock = await prisma.warehouseStock.findUnique({
