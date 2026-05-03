@@ -346,13 +346,13 @@ model StockTransfer {
   quantity         Float
   status           String    @default("BEKLEMEDE")
   notes            String?
-  createdById      String
+  createdById      String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   fromWarehouse    Warehouse @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
   toWarehouse      Warehouse @relation("TransferTo", fields: [toWarehouseId], references: [id])
   product          Product   @relation(fields: [productId], references: [id])
-  createdBy        User      @relation(fields: [createdById], references: [id])
+  createdBy        User?     @relation(fields: [createdById], references: [id])
 }
 
 model Employee {
