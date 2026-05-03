@@ -26,12 +26,12 @@
 }
 
 * {
-  @apply border-border;
   box-sizing: border-box;
 }
 
 body {
-  @apply bg-background text-foreground;
+  background-color: #f9fafb;
+  color: #111827;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
