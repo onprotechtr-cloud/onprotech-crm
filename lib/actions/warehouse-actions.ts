@@ -190,19 +190,12 @@ export async function createStockTransfer(data: {
         transferNumber,
       });
       
-      // Admin kullanıcısına mail gönder
-      const adminUser = await prisma.user.findFirst({
-        where: { role: "ADMIN" },
-        select: { email: true },
+      // onprotechtr@gmail.com adresine mail gönder
+      await sendEmail({
+        to: "onprotechtr@gmail.com",
+        subject: emailContent.subject,
+        html: emailContent.html,
       });
-      
-      if (adminUser?.email) {
-        await sendEmail({
-          to: adminUser.email,
-          subject: emailContent.subject,
-          html: emailContent.html,
-        });
-      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);

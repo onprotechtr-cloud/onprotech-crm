@@ -93,18 +93,11 @@ export async function createQuote(data: unknown) {
         currency: rest.currency,
       });
       
-      const adminUser = await prisma.user.findFirst({
-        where: { role: "ADMIN" },
-        select: { email: true },
+      await sendEmail({
+        to: "onprotechtr@gmail.com",
+        subject: emailContent.subject,
+        html: emailContent.html,
       });
-      
-      if (adminUser?.email) {
-        await sendEmail({
-          to: adminUser.email,
-          subject: emailContent.subject,
-          html: emailContent.html,
-        });
-      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
