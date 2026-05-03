@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { customerSchema } from "@/lib/validations/customer";
+import { sendEmail, createNewCustomerEmail } from "@/lib/email";
 
 export async function getCustomers(search?: string) {
   return prisma.customer.findMany({
@@ -49,6 +50,30 @@ export async function createCustomer(data: unknown) {
   const customer = await prisma.customer.create({
     data: parsed.data,
   });
+
+  // Mail bildirimi gönder
+  try {
+    const emailContent = createNewCustomerEmail({
+      customerName: customer.name,
+      customerEmail: customer.email || "-",
+      customerPhone: customer.phone || "-",
+    });
+
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+
+    if (adminUser?.email) {
+      await sendEmail({
+        to: adminUser.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+  }
 
   revalidatePath("/musteriler");
   return { data: customer };

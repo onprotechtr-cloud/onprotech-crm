@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendEmail, createStockTransferEmail } from "@/lib/email";
 
 export async function getWarehouses() {
   const warehouses = await prisma.warehouse.findMany({
@@ -162,6 +163,52 @@ export async function createStockTransfer(data: {
 
   revalidatePath("/dashboard/depolar");
   revalidatePath("/dashboard/depolar/transfer/gecmis");
+  
+  // Mail bildirimi gönder
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: data.productId },
+      select: { name: true },
+    });
+    
+    const fromWarehouse = await prisma.warehouse.findUnique({
+      where: { id: data.fromWarehouseId },
+      select: { name: true },
+    });
+    
+    const toWarehouse = await prisma.warehouse.findUnique({
+      where: { id: data.toWarehouseId },
+      select: { name: true },
+    });
+    
+    if (product && fromWarehouse && toWarehouse) {
+      const emailContent = createStockTransferEmail({
+        productName: product.name,
+        quantity: data.quantity,
+        fromWarehouse: fromWarehouse.name,
+        toWarehouse: toWarehouse.name,
+        transferNumber,
+      });
+      
+      // Admin kullanıcısına mail gönder
+      const adminUser = await prisma.user.findFirst({
+        where: { role: "ADMIN" },
+        select: { email: true },
+      });
+      
+      if (adminUser?.email) {
+        await sendEmail({
+          to: adminUser.email,
+          subject: emailContent.subject,
+          html: emailContent.html,
+        });
+      }
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+    // Mail hatası transferi engellemesin
+  }
+  
   return { data: transfer };
 }
 

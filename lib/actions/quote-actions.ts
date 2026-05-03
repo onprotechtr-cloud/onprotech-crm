@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { quoteSchema } from "@/lib/validations/quote";
 import { generateQuoteNumber } from "@/lib/quote-number";
 import { calculateQuoteTotals, roundMoney } from "@/lib/utils";
+import { sendEmail, createNewQuoteEmail } from "@/lib/email";
 
 export async function getQuotes(status?: string) {
   return prisma.quote.findMany({
@@ -76,6 +77,39 @@ export async function createQuote(data: unknown) {
   });
 
   revalidatePath("/teklifler");
+  
+  // Mail bildirimi gönder
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: rest.customerId },
+      select: { name: true },
+    });
+    
+    if (customer) {
+      const emailContent = createNewQuoteEmail({
+        quoteNumber,
+        customerName: customer.name,
+        total,
+        currency: rest.currency,
+      });
+      
+      const adminUser = await prisma.user.findFirst({
+        where: { role: "ADMIN" },
+        select: { email: true },
+      });
+      
+      if (adminUser?.email) {
+        await sendEmail({
+          to: adminUser.email,
+          subject: emailContent.subject,
+          html: emailContent.html,
+        });
+      }
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+  }
+  
   return { data: quote };
 }
 
