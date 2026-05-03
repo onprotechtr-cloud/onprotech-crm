@@ -129,7 +129,6 @@ export async function createStockTransfer(data: {
       productId: data.productId,
       quantity: data.quantity,
       notes: data.notes || null,
-      createdById: userId,
       status: "TAMAMLANDI",
     },
   });
