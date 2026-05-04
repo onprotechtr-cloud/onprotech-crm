@@ -3,69 +3,186 @@ import { Quote, QuoteItem, Customer, User } from "@prisma/client";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 32,
-    fontSize: 11,
-    color: "#10213D",
+    padding: 30,
+    fontSize: 9,
+    color: "#000",
+    fontFamily: "Helvetica",
   },
-  row: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: "#10213D",
+    paddingBottom: 10,
+    marginBottom: 15,
   },
-  section: {
-    marginTop: 18,
+  companyInfo: {
+    width: "50%",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 700,
+  companyName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#10213D",
+    marginBottom: 5,
   },
-  subtitle: {
-    fontSize: 12,
-    color: "#52627A",
-    marginTop: 4,
+  companyDetail: {
+    fontSize: 8,
+    color: "#333",
+    marginBottom: 2,
   },
-  label: {
+  dateSection: {
+    width: "40%",
+    alignItems: "flex-end",
+  },
+  dateRow: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  dateLabel: {
+    width: 80,
+    fontWeight: "bold",
+  },
+  dateValue: {
+    width: 100,
+  },
+  customerSection: {
+    marginBottom: 15,
+    padding: 8,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 4,
+  },
+  sectionTitle: {
     fontSize: 10,
-    color: "#52627A",
-    marginBottom: 4,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#10213D",
+  },
+  customerRow: {
+    flexDirection: "row",
+    marginBottom: 2,
+  },
+  customerLabel: {
+    width: 80,
+    fontWeight: "bold",
+  },
+  table: {
+    marginTop: 10,
+    marginBottom: 15,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#10213D",
-    color: "#FFFFFF",
-    padding: 8,
-    marginTop: 8,
+    color: "#fff",
+    padding: 6,
+    fontWeight: "bold",
+    fontSize: 8,
   },
   tableRow: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    padding: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    padding: 5,
+    minHeight: 30,
   },
-  totalBox: {
+  tableRowAlternate: {
+    flexDirection: "row",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    padding: 5,
+    minHeight: 30,
+    backgroundColor: "#f9f9f9",
+  },
+  colImage: {
+    width: "12%",
+    textAlign: "center",
+  },
+  colProduct: {
+    width: "40%",
+    paddingRight: 5,
+  },
+  colQty: {
+    width: "10%",
+    textAlign: "center",
+  },
+  colPrice: {
+    width: "18%",
+    textAlign: "right",
+  },
+  colTotal: {
+    width: "20%",
+    textAlign: "right",
+  },
+  totalsSection: {
+    width: "50%",
     marginLeft: "auto",
-    width: 220,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 8,
-    padding: 12,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#10213D",
+    paddingTop: 10,
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  totalLabel: {
+    fontWeight: "bold",
+  },
+  grandTotal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#000",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+  notesSection: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 4,
+  },
+  noteTitle: {
+    fontWeight: "bold",
+    marginBottom: 5,
+    fontSize: 10,
+  },
+  noteText: {
+    fontSize: 8,
+    marginBottom: 3,
+    lineHeight: 1.4,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 30,
+    right: 30,
+    borderTopWidth: 1,
+    borderTopColor: "#10213D",
+    paddingTop: 10,
+  },
+  footerText: {
+    fontSize: 7,
+    textAlign: "center",
+    color: "#666",
   },
 });
 
 function formatCurrency(value: number, currency: string = "TRY") {
   if (currency === "USD") {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value);
+    return `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 2,
-  }).format(value);
+  return `${value.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`;
+}
+
+function formatDate(date: Date | string) {
+  return new Date(date).toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 type QuoteDocumentProps = {
@@ -78,83 +195,137 @@ type QuoteDocumentProps = {
 
 export function QuoteDocument({ quote }: QuoteDocumentProps) {
   const cur = quote.currency ?? "TRY";
+  const currencySymbol = cur === "USD" ? "$" : "TL";
+  
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.row}>
-          <View>
-            <Text style={styles.title}>ONPROTECH</Text>
-            <Text style={styles.subtitle}>Profesyonel CRM Teklif Dokümani</Text>
+        {/* Header - Firma Bilgileri */}
+        <View style={styles.header}>
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>ONPROTECH GÜVENLİK SİSTEMLERİ</Text>
+            <Text style={styles.companyDetail}>Halil Rıfat Paşa Mah. Perpa Tic. Merk.</Text>
+            <Text style={styles.companyDetail}>A Blok Kat:5, No:458 Şişli/İSTANBUL</Text>
+            <Text style={styles.companyDetail}>Tel: 0212 521 11 21 / 0532 392 82 72</Text>
+            <Text style={styles.companyDetail}>E-mail: info@onprotech.com.tr</Text>
+            <Text style={styles.companyDetail}>Web: www.onprotech.com.tr</Text>
           </View>
-          <View>
-            <Text style={styles.label}>Teklif No</Text>
-            <Text>{quote.quoteNumber}</Text>
-            <Text style={[styles.label, { marginTop: 8 }]}>Tarih</Text>
-            <Text>{new Date(quote.date).toLocaleDateString("tr-TR")}</Text>
-            <Text style={[styles.label, { marginTop: 8 }]}>Para Birimi</Text>
-            <Text>{cur}</Text>
+          <View style={styles.dateSection}>
+            <View style={styles.dateRow}>
+              <Text style={styles.dateLabel}>Tarih:</Text>
+              <Text style={styles.dateValue}>{formatDate(quote.date)}</Text>
+            </View>
+            <View style={styles.dateRow}>
+              <Text style={styles.dateLabel}>Teklif No:</Text>
+              <Text style={styles.dateValue}>{quote.quoteNumber}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={[styles.section, styles.row]}>
-          <View style={{ width: "48%" }}>
-            <Text style={styles.label}>Müsteri Bilgileri</Text>
+        {/* Müşteri Bilgileri */}
+        <View style={styles.customerSection}>
+          <Text style={styles.sectionTitle}>DİKKATİNE</Text>
+          <View style={styles.customerRow}>
+            <Text style={styles.customerLabel}>Firma:</Text>
+            <Text>{quote.customer.company || quote.customer.name}</Text>
+          </View>
+          <View style={styles.customerRow}>
+            <Text style={styles.customerLabel}>İlgili:</Text>
             <Text>{quote.customer.name}</Text>
-            <Text>{quote.customer.company ?? "-"}</Text>
-            <Text>{quote.customer.email ?? "-"}</Text>
-            <Text>{quote.customer.phone ?? "-"}</Text>
-            <Text>{quote.customer.address ?? "-"}</Text>
           </View>
-          <View style={{ width: "48%" }}>
-            <Text style={styles.label}>Hazirlayan</Text>
-            <Text>{quote.user.name}</Text>
-            <Text>{quote.user.email}</Text>
-            <Text style={[styles.label, { marginTop: 10 }]}>Gecerlilik</Text>
-            <Text>{new Date(quote.validUntil).toLocaleDateString("tr-TR")}</Text>
+          <View style={styles.customerRow}>
+            <Text style={styles.customerLabel}>Telefon:</Text>
+            <Text>{quote.customer.phone || "-"}</Text>
+          </View>
+          <View style={styles.customerRow}>
+            <Text style={styles.customerLabel}>E-mail:</Text>
+            <Text>{quote.customer.email || "-"}</Text>
           </View>
         </View>
 
-        <View style={styles.section}>
+        {/* Ürün Tablosu */}
+        <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={{ width: "28%" }}>Urun</Text>
-            <Text style={{ width: "28%" }}>Aciklama</Text>
-            <Text style={{ width: "12%" }}>Miktar</Text>
-            <Text style={{ width: "12%" }}>Birim</Text>
-            <Text style={{ width: "20%", textAlign: "right" }}>Tutar</Text>
+            <Text style={styles.colImage}>ÜRÜN GÖRSELİ</Text>
+            <Text style={styles.colProduct}>MALZEME CİNSİ VE ÖZELLİKLERİ</Text>
+            <Text style={styles.colQty}>MİKTAR</Text>
+            <Text style={styles.colPrice}>FİYAT ({currencySymbol})</Text>
+            <Text style={styles.colTotal}>TOPLAM ({currencySymbol})</Text>
           </View>
-          {quote.items.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
-              <Text style={{ width: "28%" }}>{item.productName}</Text>
-              <Text style={{ width: "28%" }}>{item.description ?? "-"}</Text>
-              <Text style={{ width: "12%" }}>{item.quantity}</Text>
-              <Text style={{ width: "12%" }}>{item.unit}</Text>
-              <Text style={{ width: "20%", textAlign: "right" }}>{formatCurrency(item.total, cur)}</Text>
+          
+          {quote.items.map((item, index) => (
+            <View key={item.id} style={index % 2 === 0 ? styles.tableRow : styles.tableRowAlternate}>
+              <Text style={styles.colImage}>-</Text>
+              <Text style={styles.colProduct}>{item.productName}</Text>
+              <Text style={styles.colQty}>{item.quantity}</Text>
+              <Text style={styles.colPrice}>{formatCurrency(item.unitPrice, cur)}</Text>
+              <Text style={styles.colTotal}>{formatCurrency(item.total, cur)}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.totalBox}>
-          <View style={styles.row}>
-            <Text>Ara Toplam</Text>
+        {/* Toplamlar */}
+        <View style={styles.totalsSection}>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>TOPLAM:</Text>
             <Text>{formatCurrency(quote.subtotal, cur)}</Text>
           </View>
-          <View style={[styles.row, { marginTop: 6 }]}>
-            <Text>KDV (%{quote.taxRate})</Text>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>KDV %{quote.taxRate}:</Text>
             <Text>{formatCurrency(quote.taxAmount, cur)}</Text>
           </View>
-          <View style={[styles.row, { marginTop: 6 }]}>
-            <Text>Indirim</Text>
-            <Text>{formatCurrency(quote.discount, cur)}</Text>
-          </View>
-          <View style={[styles.row, { marginTop: 10, fontSize: 13 }]}>
-            <Text>Genel Toplam</Text>
+          {quote.discount > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>İNDİRİM:</Text>
+              <Text>-{formatCurrency(quote.discount, cur)}</Text>
+            </View>
+          )}
+          <View style={styles.grandTotal}>
+            <Text>GENEL TOPLAM:</Text>
             <Text>{formatCurrency(quote.total, cur)}</Text>
           </View>
+          {cur === "USD" && (
+            <Text style={{ fontSize: 7, marginTop: 5, fontStyle: "italic" }}>
+              * Fatura kesildiği günki Merkez Bankası dolar satış kuru üzerinden hesaplanır.
+            </Text>
+          )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Notlar</Text>
-          <Text>{quote.notes ?? "Ek not bulunmuyor."}</Text>
+        {/* Notlar ve Şartlar */}
+        <View style={styles.notesSection}>
+          <Text style={styles.noteTitle}>TESLİMAT</Text>
+          <Text style={styles.noteText}>
+            Teslimat, kesin sipariş ve ön ödemeyi takiben, stok durumuna göre 1 (bir) hafta içerisinde yapılacaktır.
+          </Text>
+          
+          <Text style={styles.noteTitle}>ÖDEME ŞEKLİ ve ZAMANI</Text>
+          <Text style={styles.noteText}>
+            Anlaşma sağlandığında fatura tutarının %50 peşin, %50 tutar fatura tarihinden itibaren 3 iş günü içerisinde ödemenin tamamı alınacaktır.
+          </Text>
+          
+          <Text style={styles.noteTitle}>GARANTİ ve BAKIM</Text>
+          <Text style={styles.noteText}>
+            Teklifimize konu ürünler, teslim tarihinden itibaren, üretim hatalarına karşı 2 (iki) yıl süre ile üretici firmanın belirlediği şartlar dahilinde garanti kapsamındadır. Montajı yapılan ürünler 2 yıl, uygulanan işçilik firmamız tarafından 1 yıl garantilidir.
+          </Text>
+          
+          {quote.notes && (
+            <>
+              <Text style={styles.noteTitle}>NOT</Text>
+              <Text style={styles.noteText}>{quote.notes}</Text>
+            </>
+          )}
+          
+          <Text style={styles.noteTitle}>MONTAJ KURULUM ve MÜHENDİSLİK BEDELİ</Text>
+          <Text style={styles.noteText}>
+            Montaj kurulum ve mühendislik bedeli teklif kapsamında değerlendirilmelidir. Kullanıcıdan kaynaklı problemlerde servis ücreti alınacaktır.
+          </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            ONPROTECH GÜVENLİK SİSTEMLERİ | info@onprotech.com.tr | www.onprotech.com.tr | Tel: 0212 521 11 21
+          </Text>
         </View>
       </Page>
     </Document>
