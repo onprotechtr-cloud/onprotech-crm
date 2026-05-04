@@ -68,7 +68,9 @@ export async function createQuoteAction(formData: FormData) {
 
   const quote = await prisma.quote.create({
     data: {
-      ...rest,
+      customerId,
+      currency,
+      notes,
       quoteNumber,
       userId,
       date: new Date(date),
