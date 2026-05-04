@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { createQuoteAction, updateQuoteAction } from "@/lib/actions/quotes";
+import { createQuoteAction, updateQuoteAction } from "@/lib/actions/quote-actions";
 import { quoteSchema, type QuoteInput } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
