@@ -130,7 +130,7 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
 
         const result = quote
           ? await updateQuoteAction(quote.id, formData)
-          : await createQuoteAction(formData, userId);
+          : await createQuoteAction(formData);
         toast.success(result.message);
         router.push(
           quote

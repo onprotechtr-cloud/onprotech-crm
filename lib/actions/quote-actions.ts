@@ -32,22 +32,39 @@ export async function getQuote(id: string) {
   });
 }
 
-export async function createQuote(data: unknown) {
+export async function createQuoteAction(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return { error: { auth: ["Oturum açmanız gerekiyor"] } };
 
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) return { error: { auth: ["Kullanıcı ID bulunamadı"] } };
+
+  // FormData'dan değerleri al
+  const customerId = formData.get("customerId") as string;
+  const date = formData.get("date") as string;
+  const validUntil = formData.get("validUntil") as string;
+  const currency = formData.get("currency") as string;
+  const taxRate = Number(formData.get("taxRate"));
+  const discount = Number(formData.get("discount"));
+  const notes = formData.get("notes") as string;
+  const itemsJson = formData.get("items") as string;
+  
+  let items;
+  try {
+    items = JSON.parse(itemsJson);
+  } catch {
+    return { error: { items: ["Geçersiz ürün listesi"] } };
+  }
+
+  const data = { customerId, date, validUntil, currency, taxRate, discount, notes, items };
+  
   const parsed = quoteSchema.safeParse(data);
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
-  const { items, date, validUntil, taxRate, discount, ...rest } = parsed.data;
-
   const { subtotal, taxAmount, total } = calculateQuoteTotals(items, taxRate, discount);
   const quoteNumber = await generateQuoteNumber();
-
-  const userId = (session.user as { id?: string }).id;
-  if (!userId) return { error: { auth: ["Kullanıcı ID bulunamadı"] } };
 
   const quote = await prisma.quote.create({
     data: {
@@ -106,7 +123,7 @@ export async function createQuote(data: unknown) {
   return { data: quote };
 }
 
-export async function updateQuote(id: string, data: unknown) {
+export async function updateQuoteAction(id: string, data: unknown) {
   const parsed = quoteSchema.safeParse(data);
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
