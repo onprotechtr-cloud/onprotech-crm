@@ -169,7 +169,12 @@ export async function updateQuoteAction(id: string, data: unknown) {
 
   revalidatePath("/teklifler");
   revalidatePath(`/teklifler/${id}`);
-  return { data: quote };
+  return { 
+    success: true, 
+    message: "Teklif başarıyla güncellendi.",
+    id: quote.id,
+    data: quote 
+  };
 }
 
 export async function updateQuoteStatus(
