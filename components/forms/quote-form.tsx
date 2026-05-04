@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Quote, QuoteItem } from "@prisma/client";
 import { useForm } from "react-hook-form";
@@ -77,14 +77,28 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
         : new Date().toISOString().slice(0, 10),
       validUntil: quote
         ? new Date(quote.validUntil).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
       currency: (quote?.currency as "TRY" | "USD") ?? "TRY",
       taxRate: quote?.taxRate ?? 20,
       discount: quote?.discount ?? 0,
       notes: quote?.notes ?? "",
-      items,
+      items: quote?.items.map((item) => ({
+        productName: item.productName,
+        description: item.description ?? "",
+        quantity: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+      })) ?? [emptyLine()],
     },
   });
+
+  // items state'ini form'a sync et
+  const [items, setItems] = useState<LineItem[]>(form.getValues("items"));
+  
+  // items değiştiğinde form'u güncelle
+  useEffect(() => {
+    form.setValue("items", items, { shouldValidate: true });
+  }, [items, form]);
 
   const currency = form.watch("currency") ?? "TRY";
   const taxRate = Number(form.watch("taxRate") ?? 0);
@@ -117,7 +131,7 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
 
   const onSubmit = form.handleSubmit((values) => {
     console.log("Form submitted", values);
-    console.log("Items state:", items);
+    console.log("Items from form:", form.getValues("items"));
     startTransition(async () => {
       try {
         const formData = new FormData();
@@ -128,7 +142,7 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
         formData.append("taxRate", String(values.taxRate));
         formData.append("discount", String(values.discount));
         formData.append("notes", values.notes ?? "");
-        formData.append("items", JSON.stringify(items));
+        formData.append("items", JSON.stringify(form.getValues("items")));
 
         console.log("Calling action...");
         const result = quote
