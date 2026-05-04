@@ -116,6 +116,8 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
   };
 
   const onSubmit = form.handleSubmit((values) => {
+    console.log("Form submitted", values);
+    console.log("Items state:", items);
     startTransition(async () => {
       try {
         const formData = new FormData();
@@ -128,9 +130,11 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
         formData.append("notes", values.notes ?? "");
         formData.append("items", JSON.stringify(items));
 
+        console.log("Calling action...");
         const result = quote
           ? await updateQuoteAction(quote.id, formData)
           : await createQuoteAction(formData);
+        console.log("Result:", result);
         toast.success(result.message);
         router.push(
           quote
@@ -139,6 +143,7 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
         );
         router.refresh();
       } catch (error) {
+        console.error("Error:", error);
         toast.error(getErrorMessage(error));
       }
     });
