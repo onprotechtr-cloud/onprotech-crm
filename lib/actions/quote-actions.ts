@@ -122,7 +122,12 @@ export async function createQuoteAction(formData: FormData) {
     console.error("Mail gönderme hatası:", emailError);
   }
   
-  return { data: quote };
+  return { 
+    success: true, 
+    message: "Teklif başarıyla oluşturuldu.",
+    id: quote.id,
+    data: quote 
+  };
 }
 
 export async function updateQuoteAction(id: string, data: unknown) {
