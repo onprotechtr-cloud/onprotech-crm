@@ -58,15 +58,6 @@ const emptyLine = (): LineItem => ({
 export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [items, setItems] = useState<LineItem[]>(
-    quote?.items.map((item) => ({
-      productName: item.productName,
-      description: item.description ?? "",
-      quantity: item.quantity,
-      unit: item.unit,
-      unitPrice: item.unitPrice,
-    })) ?? [emptyLine()],
-  );
 
   const form = useForm<QuoteInput>({
     resolver: zodResolver(quoteSchema),
@@ -92,7 +83,7 @@ export function QuoteForm({ customers, products, userId, quote }: QuoteFormProps
     },
   });
 
-  // items state'ini form'a sync et
+  // items state'ini form'dan al
   const [items, setItems] = useState<LineItem[]>(form.getValues("items"));
   
   // items değiştiğinde form'u güncelle
