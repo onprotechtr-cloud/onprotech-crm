@@ -34,27 +34,22 @@ export async function getQuote(id: string) {
 
 export async function createQuoteAction(formData: FormData) {
   const session = await getServerSession(authOptions);
+  console.log("Session:", session);
   if (!session?.user) return { error: { auth: ["Oturum açmanız gerekiyor"] } };
 
   let userId = (session.user as { id?: string }).id;
   const userEmail = (session.user as { email?: string }).email;
+  console.log("Session userId:", userId, "email:", userEmail);
   
-  // UserId yoksa veya geçersizse, email üzerinden kullanıcıyı bul
-  if (!userId && userEmail) {
-    const dbUser = await prisma.user.findUnique({
-      where: { email: userEmail },
-      select: { id: true },
-    });
-    userId = dbUser?.id;
-  }
+  // Debug: Her zaman admin kullanıcısını kullan
+  const adminUser = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+    select: { id: true, email: true },
+  });
+  console.log("Admin user:", adminUser);
   
-  // Hala bulunamadıysa admin kullanıcısını bul
-  if (!userId) {
-    const adminUser = await prisma.user.findFirst({
-      where: { role: "ADMIN" },
-      select: { id: true },
-    });
-    userId = adminUser?.id;
+  if (adminUser?.id) {
+    userId = adminUser.id;
   }
   
   if (!userId) return { error: { auth: ["Kullanıcı ID bulunamadı"] } };
