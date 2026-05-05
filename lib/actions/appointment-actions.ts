@@ -50,9 +50,11 @@ export async function getAppointment(id: string) {
 
 export async function createAppointment(data: unknown) {
   const session = await getServerSession(authOptions);
+  console.log("Appointment - Session:", session);
   if (!session?.user) return { error: { auth: ["Oturum açmanız gerekiyor"] } };
 
   let userId = (session.user as { id?: string }).id;
+  console.log("Appointment - Session userId:", userId);
   
   // UserId yoksa admin kullanıcısını bul
   if (!userId) {
@@ -60,6 +62,7 @@ export async function createAppointment(data: unknown) {
       where: { role: "ADMIN" },
       select: { id: true },
     });
+    console.log("Appointment - Admin user:", adminUser);
     userId = adminUser?.id;
   }
   

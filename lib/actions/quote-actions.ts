@@ -115,7 +115,7 @@ export async function createQuoteAction(formData: FormData) {
   // Mail bildirimi gönder
   try {
     const customer = await prisma.customer.findUnique({
-      where: { id: rest.customerId },
+      where: { id: customerId },
       select: { name: true },
     });
     
@@ -124,7 +124,7 @@ export async function createQuoteAction(formData: FormData) {
         quoteNumber,
         customerName: customer.name,
         total,
-        currency: rest.currency,
+        currency: currency,
       });
       
       await sendEmail({
