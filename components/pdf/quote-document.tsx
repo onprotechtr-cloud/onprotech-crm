@@ -1,4 +1,4 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View, Image } from "@react-pdf/renderer";
 import { Quote, QuoteItem, Customer, User } from "@prisma/client";
 
 const styles = StyleSheet.create({
@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     padding: 30,
     fontSize: 9,
     color: "#000",
-    fontFamily: "Helvetica",
+    fontFamily: "Times-Roman",
   },
   header: {
     flexDirection: "row",
@@ -24,6 +24,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#10213D",
     marginBottom: 5,
+  },
+  logo: {
+    width: 150,
+    height: 40,
+    objectFit: "contain",
   },
   companyDetail: {
     fontSize: 8,
@@ -203,7 +208,10 @@ export function QuoteDocument({ quote }: QuoteDocumentProps) {
         {/* Header - Firma Bilgileri */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>ONPROTECH GÜVENLİK SİSTEMLERİ</Text>
+            <Image 
+              style={styles.logo} 
+              src="https://crm.onprotech.com.tr/onprotech-logo.png" 
+            />
             <Text style={styles.companyDetail}>Halil Rıfat Paşa Mah. Perpa Tic. Merk.</Text>
             <Text style={styles.companyDetail}>A Blok Kat:5, No:458 Şişli/İSTANBUL</Text>
             <Text style={styles.companyDetail}>Tel: 0212 521 11 21 / 0532 392 82 72</Text>
