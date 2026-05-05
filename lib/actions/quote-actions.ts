@@ -37,8 +37,18 @@ export async function createQuoteAction(formData: FormData) {
   if (!session?.user) return { error: { auth: ["Oturum açmanız gerekiyor"] } };
 
   let userId = (session.user as { id?: string }).id;
+  const userEmail = (session.user as { email?: string }).email;
   
-  // UserId yoksa veya geçersizse admin kullanıcısını bul
+  // UserId yoksa veya geçersizse, email üzerinden kullanıcıyı bul
+  if (!userId && userEmail) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true },
+    });
+    userId = dbUser?.id;
+  }
+  
+  // Hala bulunamadıysa admin kullanıcısını bul
   if (!userId) {
     const adminUser = await prisma.user.findFirst({
       where: { role: "ADMIN" },
