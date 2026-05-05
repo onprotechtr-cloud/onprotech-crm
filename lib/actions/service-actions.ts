@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ServiceStatus, ServiceType } from "@prisma/client";
+import { sendEmail, createNewServiceOrderEmail } from "@/lib/email";
 
 export async function getServiceOrders(filters?: {
   status?: string;
@@ -101,7 +102,30 @@ export async function createServiceOrder(data: {
       location: data.location || null,
       customerNotes: data.customerNotes || null,
     },
+    include: {
+      customer: { select: { name: true } },
+    },
   });
+
+  // Mail bildirimi gönder
+  try {
+    if (order.customer) {
+      const emailContent = createNewServiceOrderEmail({
+        orderNumber,
+        customerName: order.customer.name,
+        type: data.type,
+        priority: data.priority,
+      });
+      
+      await sendEmail({
+        to: "onprotechtr@gmail.com",
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+  }
 
   revalidatePath("/dashboard/teknik-servis");
   return { data: order };

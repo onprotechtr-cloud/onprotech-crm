@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { appointmentSchema } from "@/lib/validations/appointment";
+import { sendEmail, createNewAppointmentEmail } from "@/lib/email";
 
 export async function getAppointments(fromDate?: Date, toDate?: Date) {
   return prisma.appointment.findMany({
@@ -67,7 +68,30 @@ export async function createAppointment(data: unknown) {
       date: new Date(date),
       userId,
     },
+    include: {
+      customer: { select: { name: true } },
+    },
   });
+
+  // Mail bildirimi gönder
+  try {
+    if (appointment.customer) {
+      const emailContent = createNewAppointmentEmail({
+        customerName: appointment.customer.name,
+        date: appointment.date.toLocaleDateString('tr-TR'),
+        startTime: appointment.startTime,
+        title: appointment.title,
+      });
+      
+      await sendEmail({
+        to: "onprotechtr@gmail.com",
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+  }
 
   revalidatePath("/randevular");
   revalidatePath("/dashboard");

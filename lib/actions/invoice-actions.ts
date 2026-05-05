@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { InvoiceStatus, InvoiceType } from "@prisma/client";
+import { sendEmail, createNewInvoiceEmail } from "@/lib/email";
 
 export async function getInvoices(status?: string) {
   return prisma.invoice.findMany({
@@ -111,6 +112,32 @@ export async function createInvoice(data: CreateInvoiceInput) {
   });
 
   revalidatePath("/dashboard/faturalar");
+  
+  // Mail bildirimi gönder
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: rest.customerId },
+      select: { name: true },
+    });
+    
+    if (customer) {
+      const emailContent = createNewInvoiceEmail({
+        invoiceNumber,
+        customerName: customer.name,
+        total,
+        currency: rest.currency,
+      });
+      
+      await sendEmail({
+        to: "onprotechtr@gmail.com",
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    }
+  } catch (emailError) {
+    console.error("Mail gönderme hatası:", emailError);
+  }
+  
   return { data: invoice };
 }
 
