@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { WarehouseType } from "@prisma/client";
 import { sendEmail, createStockTransferEmail } from "@/lib/email";
 
 export async function getWarehouses() {
@@ -41,7 +42,7 @@ export async function createWarehouse(data: {
   const warehouse = await prisma.warehouse.create({
     data: {
       name: data.name,
-      type: data.type,
+      type: data.type as WarehouseType,
       description: data.description || null,
       address: data.address || null,
       responsible: data.responsible || null,
@@ -65,7 +66,10 @@ export async function updateWarehouse(
 ) {
   const warehouse = await prisma.warehouse.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      type: data.type ? (data.type as WarehouseType) : undefined,
+    },
   });
 
   revalidatePath("/dashboard/depolar");

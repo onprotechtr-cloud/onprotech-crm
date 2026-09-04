@@ -21,6 +21,7 @@ import {
   TicketStatus,
   TransactionType,
   UserRole,
+  WarehouseType,
   WorkPlanPriority,
   WorkPlanStatus,
 } from "@prisma/client";
@@ -29,6 +30,12 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Check if database already has data to prevent wiping user data on re-deploy
+  const existingUserCount = await prisma.user.count();
+  if (existingUserCount > 0) {
+    console.log("Veritabanında mevcut veri var, seed atlanıyor.");
+    return;
+  }
   // Clean up in dependency order
   await prisma.ticketMessage.deleteMany();
   await prisma.ticket.deleteMany();
