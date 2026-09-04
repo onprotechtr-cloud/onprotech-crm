@@ -196,11 +196,11 @@ async function main() {
   );
 
   // Warehouses
-  const [merkezDepo, arac1Depo, arac2Depo] = await Promise.all([
+  const [merkezDepo, subeDepo, arac1Depo, arac2Depo] = await Promise.all([
     prisma.warehouse.create({
       data: {
         name: "Merkez Depo",
-        type: "MERKEZ",
+        type: WarehouseType.MERKEZ,
         description: "Ana depo - tum urun kategorileri",
         address: "Istanbul OSB, No:1",
         responsible: "Onur Ertekin",
@@ -208,8 +208,17 @@ async function main() {
     }),
     prisma.warehouse.create({
       data: {
+        name: "Şube Depo",
+        type: WarehouseType.SUBE,
+        description: "Bölge şubesi - yedek parçalar",
+        address: "Ankara Şube, No:15",
+        responsible: "Selin Kara",
+      },
+    }),
+    prisma.warehouse.create({
+      data: {
         name: "Arac 1 Depo",
-        type: "ARAC",
+        type: WarehouseType.ARAC,
         description: "Teknisyen Kemal - arac deposu",
         address: "Sahil garaj",
         responsible: "Kemal Ozkan",
@@ -218,7 +227,7 @@ async function main() {
     prisma.warehouse.create({
       data: {
         name: "Arac 2 Depo",
-        type: "ARAC",
+        type: WarehouseType.ARAC,
         description: "Ikinci arac - yedek malzeme",
         responsible: "Onur Ertekin",
       },
