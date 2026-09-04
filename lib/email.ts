@@ -5,7 +5,7 @@ export async function sendEmail({
   subject,
   html,
 }: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
 }) {
@@ -42,28 +42,42 @@ export async function sendEmail({
 // Bildirim mail şablonları
 export function createStockTransferEmail({
   productName,
+  productCode,
   quantity,
+  unit,
   fromWarehouse,
   toWarehouse,
   transferNumber,
+  createdBy,
+  date,
 }: {
   productName: string;
+  productCode?: string;
   quantity: number;
+  unit?: string;
   fromWarehouse: string;
   toWarehouse: string;
   transferNumber: string;
+  createdBy?: string;
+  date?: string;
 }) {
+  const formattedDate = date || new Date().toLocaleString("tr-TR");
+  const productInfo = productCode ? `${productName} (${productCode})` : productName;
+  const quantityInfo = unit ? `${quantity} ${unit}` : `${quantity}`;
+
   return {
     subject: `Stok Transferi Tamamlandı - ${transferNumber}`,
     html: `
       <h2>Stok Transferi Bildirimi</h2>
       <p>Aşağıdaki stok transferi başarıyla tamamlandı:</p>
       <ul>
-        <li><strong>Ürün:</strong> ${productName}</li>
-        <li><strong>Miktar:</strong> ${quantity}</li>
+        <li><strong>Transfer No:</strong> ${transferNumber}</li>
+        <li><strong>Ürün:</strong> ${productInfo}</li>
+        <li><strong>Miktar:</strong> ${quantityInfo}</li>
         <li><strong>Kaynak Depo:</strong> ${fromWarehouse}</li>
         <li><strong>Hedef Depo:</strong> ${toWarehouse}</li>
-        <li><strong>Transfer No:</strong> ${transferNumber}</li>
+        <li><strong>Transfer Eden:</strong> ${createdBy || "Sistem Kullanıcısı"}</li>
+        <li><strong>Tarih:</strong> ${formattedDate}</li>
       </ul>
       <p>ONPROTECH CRM Sistemi</p>
     `,

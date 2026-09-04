@@ -89,113 +89,181 @@ export async function createStockTransfer(data: {
   notes?: string;
 }) {
   const session = await getServerSession(authOptions);
-  console.log("Session:", session);
   
   if (!session?.user) {
-    console.error("No session or user");
     return { error: "Oturum açmanız gerekiyor" };
   }
 
   const userId = (session.user as { id?: string }).id;
-  console.log("User ID:", userId);
+  const userName = session.user.name || (session.user as { email?: string }).email || "Kullanıcı";
   
   if (!userId) {
-    console.error("No user ID in session");
     return { error: "Kullanıcı ID bulunamadı" };
   }
 
-  // Check source stock
-  const fromStock = await prisma.warehouseStock.findUnique({
-    where: {
-      warehouseId_productId: {
-        warehouseId: data.fromWarehouseId,
-        productId: data.productId,
-      },
-    },
-  });
+  if (data.fromWarehouseId === data.toWarehouseId) {
+    return { error: "Kaynak ve hedef depo aynı olamaz" };
+  }
 
-  if (!fromStock || fromStock.quantity < data.quantity) {
-    return {
-      error: `Yetersiz stok. Mevcut: ${fromStock?.quantity ?? 0}`,
-    };
+  if (data.quantity <= 0) {
+    return { error: "Transfer miktarı 0'dan büyük olmalıdır" };
   }
 
   const transferNumber = await generateTransferNumber();
 
-  const transfer = await prisma.stockTransfer.create({
-    data: {
-      transferNumber,
-      fromWarehouseId: data.fromWarehouseId,
-      toWarehouseId: data.toWarehouseId,
-      productId: data.productId,
-      quantity: data.quantity,
-      notes: data.notes || null,
-      status: "TAMAMLANDI",
-    },
-  });
-
-  // Update warehouse stocks
-  await prisma.$transaction([
-    prisma.warehouseStock.update({
-      where: {
-        warehouseId_productId: {
-          warehouseId: data.fromWarehouseId,
-          productId: data.productId,
+  let transfer;
+  try {
+    // Prisma transaction içinde hem stok düşümü hem de stok eklemesi ve transfer kaydı yapılıyor
+    transfer = await prisma.$transaction(async (tx) => {
+      // 1. Kaynak depo stoğunu kontrol et
+      const fromStock = await tx.warehouseStock.findUnique({
+        where: {
+          warehouseId_productId: {
+            warehouseId: data.fromWarehouseId,
+            productId: data.productId,
+          },
         },
-      },
-      data: { quantity: { decrement: data.quantity } },
-    }),
-    prisma.warehouseStock.upsert({
-      where: {
-        warehouseId_productId: {
+      });
+
+      if (!fromStock || fromStock.quantity < data.quantity) {
+        throw new Error(`Yetersiz stok. Mevcut: ${fromStock?.quantity ?? 0}`);
+      }
+
+      // 2. Kaynak depodan stok düş
+      await tx.warehouseStock.update({
+        where: {
+          warehouseId_productId: {
+            warehouseId: data.fromWarehouseId,
+            productId: data.productId,
+          },
+        },
+        data: { quantity: { decrement: data.quantity } },
+      });
+
+      // 3. Hedef depoya stok ekle (varsa artır, yoksa oluştur)
+      await tx.warehouseStock.upsert({
+        where: {
+          warehouseId_productId: {
+            warehouseId: data.toWarehouseId,
+            productId: data.productId,
+          },
+        },
+        update: { quantity: { increment: data.quantity } },
+        create: {
           warehouseId: data.toWarehouseId,
           productId: data.productId,
+          quantity: data.quantity,
         },
-      },
-      update: { quantity: { increment: data.quantity } },
-      create: {
-        warehouseId: data.toWarehouseId,
-        productId: data.productId,
-        quantity: data.quantity,
-      },
-    }),
-  ]);
+      });
+
+      // 4. Transfer kaydı oluştur
+      const newTransfer = await tx.stockTransfer.create({
+        data: {
+          transferNumber,
+          fromWarehouseId: data.fromWarehouseId,
+          toWarehouseId: data.toWarehouseId,
+          productId: data.productId,
+          quantity: data.quantity,
+          notes: data.notes || null,
+          status: "TAMAMLANDI",
+          createdById: userId,
+        },
+      });
+
+      return newTransfer;
+    });
+  } catch (err: any) {
+    console.error("Stok transfer hatası:", err);
+    return { error: err.message || "Transfer işlemi başarısız oldu" };
+  }
 
   revalidatePath("/dashboard/depolar");
   revalidatePath("/dashboard/depolar/transfer/gecmis");
   
-  // Mail bildirimi gönder
+  // Mail bildirimi gönder (kaynak ve hedef depo sorumlularına)
   try {
     const product = await prisma.product.findUnique({
       where: { id: data.productId },
-      select: { name: true },
+      select: { name: true, code: true, unit: true },
     });
     
     const fromWarehouse = await prisma.warehouse.findUnique({
       where: { id: data.fromWarehouseId },
-      select: { name: true },
+      select: { name: true, responsible: true },
     });
     
     const toWarehouse = await prisma.warehouse.findUnique({
       where: { id: data.toWarehouseId },
-      select: { name: true },
+      select: { name: true, responsible: true },
     });
+
+    const executorUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
+    });
+
+    const executorName = executorUser?.name || userName;
     
     if (product && fromWarehouse && toWarehouse) {
       const emailContent = createStockTransferEmail({
         productName: product.name,
+        productCode: product.code,
         quantity: data.quantity,
+        unit: product.unit,
         fromWarehouse: fromWarehouse.name,
         toWarehouse: toWarehouse.name,
         transferNumber,
+        createdBy: executorName,
+        date: new Date().toLocaleString("tr-TR"),
       });
-      
-      // onprotechtr@gmail.com adresine mail gönder
-      await sendEmail({
-        to: "onprotechtr@gmail.com",
-        subject: emailContent.subject,
-        html: emailContent.html,
-      });
+
+      // Sorumlu kişilerin mail adreslerini tespit et
+      const findEmailForResponsible = async (respStr: string | null | undefined) => {
+        if (!respStr) return null;
+        const trimmed = respStr.trim();
+        if (trimmed.includes("@")) return trimmed;
+
+        // User tablosunda isme göre ara
+        const userMatch = await prisma.user.findFirst({
+          where: { name: { equals: trimmed, mode: "insensitive" } },
+          select: { email: true },
+        });
+        if (userMatch?.email) return userMatch.email;
+
+        // Employee tablosunda e-posta/isme göre ara
+        const employeeMatch = await prisma.employee.findFirst({
+          where: {
+            OR: [
+              { email: { equals: trimmed, mode: "insensitive" } },
+              { firstName: { contains: trimmed, mode: "insensitive" } },
+              { lastName: { contains: trimmed, mode: "insensitive" } },
+            ],
+          },
+          select: { email: true },
+        });
+        if (employeeMatch?.email) return employeeMatch.email;
+
+        return null;
+      };
+
+      const recipientEmails = new Set<string>();
+
+      const fromRespEmail = await findEmailForResponsible(fromWarehouse.responsible);
+      if (fromRespEmail) recipientEmails.add(fromRespEmail);
+
+      const toRespEmail = await findEmailForResponsible(toWarehouse.responsible);
+      if (toRespEmail) recipientEmails.add(toRespEmail);
+
+      // Genel bildirim adresi de eklenir
+      recipientEmails.add("onprotechtr@gmail.com");
+
+      if (recipientEmails.size > 0) {
+        await sendEmail({
+          to: Array.from(recipientEmails),
+          subject: emailContent.subject,
+          html: emailContent.html,
+        });
+      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
