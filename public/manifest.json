@@ -1,0 +1,58 @@
+{
+  "id": "/dashboard/",
+  "name": "ONPROTECH CRM",
+  "short_name": "ONPROTECH",
+  "description": "ONPROTECH Güvenlik Sistemleri Müşteri Yönetim Sistemi",
+  "start_url": "/dashboard/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Müşteriler",
+      "url": "/dashboard/musteriler/",
+      "description": "Müşteri listesine git"
+    },
+    {
+      "name": "Teklifler",
+      "url": "/dashboard/teklifler/",
+      "description": "Teklif listesine git"
+    }
+  ],
+  "categories": ["business", "productivity"]
+}

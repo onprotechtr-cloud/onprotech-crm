@@ -7,18 +7,29 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ONPROTECH CRM",
+  title: {
+    default: "ONPROTECH CRM",
+    template: "%s | ONPROTECH CRM",
+  },
   description: "ONPROTECH Güvenlik Sistemleri - Müşteri Yönetim Sistemi",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "ONPROTECH",
   },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: [
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
+    shortcut: ["/icon-192x192.png"],
   },
 };
 
