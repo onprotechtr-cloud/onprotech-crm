@@ -35,8 +35,8 @@ export default async function DepoDetailPage({
           </div>
           <h2 className="text-2xl font-semibold text-slate-900">{warehouse.name}</h2>
           <div className="flex gap-2 mt-2">
-            <Badge variant={warehouse.type === "MERKEZ" ? "accent" : "default"}>
-              {warehouse.type === "MERKEZ" ? "Merkez Depo" : "Araç Deposu"}
+            <Badge variant={warehouse.type === "MERKEZ" ? "accent" : warehouse.type === "SUBE" ? "secondary" : "default"}>
+              {warehouse.type === "MERKEZ" ? "Merkez Depo" : warehouse.type === "SUBE" ? "Şube Deposu" : "Araç Deposu"}
             </Badge>
             {!warehouse.isActive && <Badge variant="danger">Pasif</Badge>}
           </div>

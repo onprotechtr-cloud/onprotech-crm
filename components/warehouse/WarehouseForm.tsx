@@ -79,6 +79,7 @@ export function WarehouseForm({ warehouse }: { warehouse?: WarehouseData }) {
                 className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
               >
                 <option value="MERKEZ">Merkez Depo</option>
+                <option value="SUBE">Şube Deposu</option>
                 <option value="ARAC">Araç Deposu</option>
               </select>
             </div>

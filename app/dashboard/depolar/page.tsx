@@ -52,8 +52,8 @@ export default async function DepolarPage() {
                       <Warehouse className="h-5 w-5 text-orange-500 flex-shrink-0" />
                       <CardTitle className="text-base">{warehouse.name}</CardTitle>
                     </div>
-                    <Badge variant={warehouse.type === "MERKEZ" ? "accent" : "default"}>
-                      {warehouse.type === "MERKEZ" ? "Merkez" : "Araç"}
+                    <Badge variant={warehouse.type === "MERKEZ" ? "accent" : warehouse.type === "SUBE" ? "secondary" : "default"}>
+                      {warehouse.type === "MERKEZ" ? "Merkez" : warehouse.type === "SUBE" ? "Şube" : "Araç"}
                     </Badge>
                   </div>
                 </CardHeader>

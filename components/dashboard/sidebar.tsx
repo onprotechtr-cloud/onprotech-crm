@@ -43,8 +43,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/teklifler", label: "Teklifler", icon: ReceiptText, roles: ["ADMIN", "SATIS", "MUHASEBE"] },
   { href: "/dashboard/randevular", label: "Randevular", icon: CalendarDays, roles: ["ADMIN", "SATIS"] },
   { href: "/dashboard/teknik-servis", label: "Teknik Servis", icon: Wrench, roles: ["ADMIN", "SATIS", "TEKNISYEN"] },
-  { href: "/dashboard/stok", label: "Stok Yönetimi", icon: Package, roles: ["ADMIN", "MUHASEBE"] },
-  { href: "/dashboard/depolar", label: "Depolar", icon: Warehouse, roles: ["ADMIN", "MUHASEBE"] },
+  { href: "/dashboard/stok", label: "Stok Yönetimi", icon: Package, roles: ["ADMIN", "SATIS", "MUHASEBE", "TEKNISYEN"] },
+  { href: "/dashboard/depolar", label: "Depo & Şube Yönetimi", icon: Warehouse, roles: ["ADMIN", "SATIS", "MUHASEBE", "TEKNISYEN"] },
   // Financial modules
   { href: "/dashboard/faturalar", label: "Faturalar", icon: FileText, roles: ["ADMIN", "MUHASEBE"], group: "Finans" },
   { href: "/dashboard/abonelikler", label: "Abonelikler", icon: RefreshCw, roles: ["ADMIN", "SATIS", "MUHASEBE"], group: "Finans" },
