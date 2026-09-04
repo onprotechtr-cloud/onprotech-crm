@@ -1,12 +1,29 @@
-import { Document, Page, StyleSheet, Text, View, Image } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Font,
+} from "@react-pdf/renderer";
 import { Quote, QuoteItem, Customer, User } from "@prisma/client";
+import path from "path";
+
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    { src: path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf"), fontWeight: 400 },
+    { src: path.join(process.cwd(), "public", "fonts", "NotoSans-Bold.ttf"), fontWeight: 700 },
+  ],
+});
 
 const styles = StyleSheet.create({
   page: {
     padding: 30,
     fontSize: 9,
     color: "#000",
-    fontFamily: "Courier",
+    fontFamily: "NotoSans",
   },
   header: {
     flexDirection: "row",
@@ -201,16 +218,18 @@ type QuoteDocumentProps = {
 export function QuoteDocument({ quote }: QuoteDocumentProps) {
   const cur = quote.currency ?? "TRY";
   const currencySymbol = cur === "USD" ? "$" : "TL";
-  
+  const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://crm.onprotech.com.tr"}/onprotech-logo.png`;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header - Firma Bilgileri */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Image 
-              style={styles.logo} 
-              src="https://crm.onprotech.com.tr/onprotech-logo.png" 
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image
+              style={styles.logo}
+              src={logoUrl}
             />
             <Text style={styles.companyDetail}>Halil Rıfat Paşa Mah. Perpa Tic. Merk.</Text>
             <Text style={styles.companyDetail}>A Blok Kat:5, No:458 Şişli/İSTANBUL</Text>

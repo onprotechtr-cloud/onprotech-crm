@@ -112,14 +112,15 @@ export async function createInvoice(data: CreateInvoiceInput) {
   });
 
   revalidatePath("/dashboard/faturalar");
-  
+
   // Mail bildirimi gönder
+  let emailResult: Awaited<ReturnType<typeof sendEmail>> | undefined;
   try {
     const customer = await prisma.customer.findUnique({
       where: { id: rest.customerId },
       select: { name: true },
     });
-    
+
     if (customer) {
       const emailContent = createNewInvoiceEmail({
         invoiceNumber,
@@ -127,18 +128,22 @@ export async function createInvoice(data: CreateInvoiceInput) {
         total,
         currency: rest.currency,
       });
-      
-      await sendEmail({
+
+      emailResult = await sendEmail({
         to: "onprotechtr@gmail.com",
         subject: emailContent.subject,
         html: emailContent.html,
       });
+
+      if (!emailResult.success) {
+        console.error("Fatura mail gönderme hatası:", emailResult.error);
+      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
   }
-  
-  return { data: invoice };
+
+  return { data: invoice, emailResult };
 }
 
 export async function updateInvoice(id: string, data: CreateInvoiceInput) {

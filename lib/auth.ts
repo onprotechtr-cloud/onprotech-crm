@@ -49,6 +49,8 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.sub = user.id;
+        token.id = user.id;
         token.role = (user as { role?: string }).role;
         token.name = user.name;
       }
@@ -57,7 +59,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? "";
+        const userId = (token.id as string) ?? token.sub ?? "";
+        session.user.id = userId;
         session.user.role = typeof token.role === "string" ? token.role : "USER";
         session.user.name = token.name ?? session.user.name;
       }

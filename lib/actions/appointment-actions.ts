@@ -53,20 +53,12 @@ export async function createAppointment(data: unknown) {
   console.log("Appointment - Session:", session);
   if (!session?.user) return { error: { auth: ["Oturum açmanız gerekiyor"] } };
 
-  let userId = (session.user as { id?: string }).id;
+  const userId = (session.user as { id?: string }).id;
   console.log("Appointment - Session userId:", userId);
-  
-  // UserId yoksa admin kullanıcısını bul
+
   if (!userId) {
-    const adminUser = await prisma.user.findFirst({
-      where: { role: "ADMIN" },
-      select: { id: true },
-    });
-    console.log("Appointment - Admin user:", adminUser);
-    userId = adminUser?.id;
+    return { error: { auth: ["Kullanıcı ID bulunamadı"] } };
   }
-  
-  if (!userId) return { error: { auth: ["Kullanıcı ID bulunamadı"] } };
 
   const parsed = appointmentSchema.safeParse(data);
   if (!parsed.success) {
@@ -87,6 +79,7 @@ export async function createAppointment(data: unknown) {
   });
 
   // Mail bildirimi gönder
+  let emailResult: Awaited<ReturnType<typeof sendEmail>> | undefined;
   try {
     if (appointment.customer) {
       const emailContent = createNewAppointmentEmail({
@@ -95,12 +88,16 @@ export async function createAppointment(data: unknown) {
         startTime: appointment.startTime,
         title: appointment.title,
       });
-      
-      await sendEmail({
+
+      emailResult = await sendEmail({
         to: "onprotechtr@gmail.com",
         subject: emailContent.subject,
         html: emailContent.html,
       });
+
+      if (!emailResult.success) {
+        console.error("Randevu mail gönderme hatası:", emailResult.error);
+      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
@@ -108,7 +105,7 @@ export async function createAppointment(data: unknown) {
 
   revalidatePath("/randevular");
   revalidatePath("/dashboard");
-  return { data: appointment };
+  return { data: appointment, emailResult };
 }
 
 export async function updateAppointment(id: string, data: unknown) {

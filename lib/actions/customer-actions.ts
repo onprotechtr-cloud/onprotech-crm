@@ -52,6 +52,7 @@ export async function createCustomer(data: unknown) {
   });
 
   // Mail bildirimi gönder
+  let emailResult: Awaited<ReturnType<typeof sendEmail>> | undefined;
   try {
     const emailContent = createNewCustomerEmail({
       customerName: customer.name,
@@ -59,17 +60,21 @@ export async function createCustomer(data: unknown) {
       customerPhone: customer.phone || "-",
     });
 
-    await sendEmail({
+    emailResult = await sendEmail({
       to: "onprotechtr@gmail.com",
       subject: emailContent.subject,
       html: emailContent.html,
     });
+
+    if (!emailResult.success) {
+      console.error("Müşteri mail gönderme hatası:", emailResult.error);
+    }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
   }
 
   revalidatePath("/musteriler");
-  return { data: customer };
+  return { data: customer, emailResult };
 }
 
 export async function updateCustomer(id: string, data: unknown) {

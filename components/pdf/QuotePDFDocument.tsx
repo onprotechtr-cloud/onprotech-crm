@@ -6,11 +6,19 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
+import path from "path";
 
-// Türkçe karakter desteği için standart font yeterli
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    { src: path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf"), fontWeight: 400 },
+    { src: path.join(process.cwd(), "public", "fonts", "NotoSans-Bold.ttf"), fontWeight: 700 },
+  ],
+});
+
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "NotoSans",
     fontSize: 9,
     padding: 40,
     color: "#1f2937",
@@ -28,7 +36,8 @@ const styles = StyleSheet.create({
   companyBlock: { flex: 1 },
   companyName: {
     fontSize: 18,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
     color: "#f97316",
     marginBottom: 3,
   },
@@ -37,13 +46,15 @@ const styles = StyleSheet.create({
   quoteInfoBlock: { alignItems: "flex-end" },
   quoteTitle: {
     fontSize: 14,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
     color: "#1f2937",
     marginBottom: 4,
   },
   quoteNumber: {
     fontSize: 11,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
     color: "#f97316",
     marginBottom: 8,
   },
@@ -59,12 +70,14 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
     fontSize: 8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
   },
   section: { marginBottom: 16 },
   sectionTitle: {
     fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
     color: "#374151",
     marginBottom: 8,
     textTransform: "uppercase",
@@ -77,7 +90,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: "#f97316",
   },
-  customerName: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#1f2937", marginBottom: 3 },
+  customerName: { fontSize: 10, fontFamily: "NotoSans",
+    fontWeight: 700, color: "#1f2937", marginBottom: 3 },
   customerDetail: { fontSize: 8, color: "#6b7280", lineHeight: 1.5 },
   table: { marginTop: 4 },
   tableHeader: {
@@ -90,7 +104,8 @@ const styles = StyleSheet.create({
   },
   tableHeaderText: {
     fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: 700,
     color: "#ffffff",
   },
   tableRow: {
@@ -102,7 +117,8 @@ const styles = StyleSheet.create({
   },
   tableRowAlt: { backgroundColor: "#f9fafb" },
   tableCell: { fontSize: 8, color: "#374151" },
-  tableCellBold: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#1f2937" },
+  tableCellBold: { fontSize: 8, fontFamily: "NotoSans",
+    fontWeight: 700, color: "#1f2937" },
   colNo: { width: "5%" },
   colProduct: { width: "32%" },
   colDesc: { width: "25%" },
@@ -136,15 +152,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1.5,
     borderTopColor: "#f97316",
   },
-  grandTotalLabel: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#1f2937" },
-  grandTotalValue: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#f97316" },
+  grandTotalLabel: { fontSize: 10, fontFamily: "NotoSans",
+    fontWeight: 700, color: "#1f2937" },
+  grandTotalValue: { fontSize: 10, fontFamily: "NotoSans",
+    fontWeight: 700, color: "#f97316" },
   notes: {
     marginTop: 16,
     backgroundColor: "#f9fafb",
     padding: 10,
     borderRadius: 4,
   },
-  notesTitle: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#374151", marginBottom: 4 },
+  notesTitle: { fontSize: 8, fontFamily: "NotoSans",
+    fontWeight: 700, color: "#374151", marginBottom: 4 },
   notesText: { fontSize: 8, color: "#6b7280", lineHeight: 1.5 },
   footer: {
     position: "absolute",

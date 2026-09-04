@@ -111,14 +111,15 @@ export async function createQuoteAction(formData: FormData) {
   });
 
   revalidatePath("/teklifler");
-  
+
   // Mail bildirimi gönder
+  let emailResult: Awaited<ReturnType<typeof sendEmail>> | undefined;
   try {
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
       select: { name: true },
     });
-    
+
     if (customer) {
       const emailContent = createNewQuoteEmail({
         quoteNumber,
@@ -126,22 +127,27 @@ export async function createQuoteAction(formData: FormData) {
         total,
         currency: currency,
       });
-      
-      await sendEmail({
+
+      emailResult = await sendEmail({
         to: "onprotechtr@gmail.com",
         subject: emailContent.subject,
         html: emailContent.html,
       });
+
+      if (!emailResult.success) {
+        console.error("Teklif mail gönderme hatası:", emailResult.error);
+      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
   }
-  
-  return { 
-    success: true, 
+
+  return {
+    success: true,
     message: "Teklif başarıyla oluşturuldu.",
     id: quote.id,
-    data: quote 
+    data: quote,
+    emailResult,
   };
 }
 

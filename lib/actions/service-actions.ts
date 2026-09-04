@@ -108,6 +108,7 @@ export async function createServiceOrder(data: {
   });
 
   // Mail bildirimi gönder
+  let emailResult: Awaited<ReturnType<typeof sendEmail>> | undefined;
   try {
     if (order.customer) {
       const emailContent = createNewServiceOrderEmail({
@@ -117,18 +118,22 @@ export async function createServiceOrder(data: {
         priority: data.priority,
       });
       
-      await sendEmail({
+      emailResult = await sendEmail({
         to: "onprotechtr@gmail.com",
         subject: emailContent.subject,
         html: emailContent.html,
       });
+
+      if (!emailResult.success) {
+        console.error("Servis mail gönderme hatası:", emailResult.error);
+      }
     }
   } catch (emailError) {
     console.error("Mail gönderme hatası:", emailError);
   }
 
   revalidatePath("/dashboard/teknik-servis");
-  return { data: order };
+  return { data: order, emailResult };
 }
 
 export async function updateServiceOrder(
