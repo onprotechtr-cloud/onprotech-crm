@@ -98,12 +98,30 @@ export async function createStockTransfer(data: {
     return { error: "Oturum açmanız gerekiyor" };
   }
 
-  const userId = (session.user as { id?: string }).id;
-  const userName = session.user.name || (session.user as { email?: string }).email || "Kullanıcı";
-  
-  if (!userId) {
-    return { error: "Kullanıcı ID bulunamadı" };
+  const sessionUser = session.user as { id?: string; email?: string; name?: string };
+  const userId = sessionUser.id;
+  const userEmail = sessionUser.email;
+
+  if (!userId && !userEmail) {
+    return { error: "Kullanıcı kimliği bulunamadı" };
   }
+
+  const executorUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        ...(userId ? [{ id: userId }] : []),
+        ...(userEmail ? [{ email: userEmail }] : []),
+      ],
+    },
+    select: { id: true, name: true, email: true },
+  });
+
+  if (!executorUser) {
+    return { error: "Oturum kullanıcısı bulunamadı. Lütfen çıkış yapıp yeniden giriş yapın." };
+  }
+
+  const executorUserId = executorUser.id;
+  const userName = executorUser.name || sessionUser.name || userEmail || "Kullanıcı";
 
   if (data.fromWarehouseId === data.toWarehouseId) {
     return { error: "Kaynak ve hedef depo aynı olamaz" };
@@ -170,7 +188,7 @@ export async function createStockTransfer(data: {
           quantity: data.quantity,
           notes: data.notes || null,
           status: "TAMAMLANDI",
-          createdById: userId,
+          createdById: executorUserId,
         },
       });
 
@@ -199,11 +217,6 @@ export async function createStockTransfer(data: {
     const toWarehouse = await prisma.warehouse.findUnique({
       where: { id: data.toWarehouseId },
       select: { name: true, responsible: true },
-    });
-
-    const executorUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true },
     });
 
     const executorName = executorUser?.name || userName;
