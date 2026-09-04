@@ -135,7 +135,7 @@ export async function getAppointmentById(id: string) {
 }
 
 export async function getProducts(search?: string) {
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: search
       ? {
           OR: [
@@ -154,10 +154,18 @@ export async function getProducts(search?: string) {
       },
     },
   });
+
+  return products.map((product) => ({
+    ...product,
+    stockQuantity:
+      product.warehouseStocks.length > 0
+        ? product.warehouseStocks.reduce((total, stock) => total + stock.quantity, 0)
+        : product.stockQuantity,
+  }));
 }
 
 export async function getProductById(id: string) {
-  return prisma.product.findUnique({
+  const product = await prisma.product.findUnique({
     where: { id },
     include: {
       warehouseStocks: {
@@ -168,12 +176,22 @@ export async function getProductById(id: string) {
       },
     },
   });
+
+  if (!product || product.warehouseStocks.length === 0) {
+    return product;
+  }
+
+  return {
+    ...product,
+    stockQuantity: product.warehouseStocks.reduce(
+      (total, stock) => total + stock.quantity,
+      0,
+    ),
+  };
 }
 
 export async function getLowStockProducts() {
-  const products = await prisma.product.findMany({
-    orderBy: { stockQuantity: "asc" },
-  });
+  const products = await getProducts();
   return products.filter((p) => p.stockQuantity <= p.minStockLevel);
 }
 

@@ -93,7 +93,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </div>
 
             <div className="border-t border-slate-100 pt-4">
-              <h3 className="mb-3 text-sm font-semibold text-slate-900">Depo Dagilimi</h3>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Depo Dagilimi</h3>
+                <span className="text-xs text-slate-500">
+                  Toplam: {product.stockQuantity} {product.unit}
+                </span>
+              </div>
               {product.warehouseStocks?.length ? (
                 <div className="space-y-2">
                   {product.warehouseStocks.map((ws) => (
