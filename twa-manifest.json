@@ -1,0 +1,46 @@
+{
+  "packageId": "com.onprotech.crm",
+  "host": "crm.onprotech.com.tr",
+  "name": "ONPROTECH CRM",
+  "launcherName": "ONPROTECH",
+  "display": "standalone",
+  "themeColor": "#F97316",
+  "navigationColor": "#0F172A",
+  "backgroundColor": "#0F172A",
+  "enableNotifications": true,
+  "startUrl": "/dashboard/",
+  "iconUrl": "https://crm.onprotech.com.tr/icon-512x512.png",
+  "maskableIconUrl": "https://crm.onprotech.com.tr/icon-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Müşteriler",
+      "shortName": "Müşteriler",
+      "url": "https://crm.onprotech.com.tr/dashboard/musteriler/",
+      "chosenIconUrl": "https://crm.onprotech.com.tr/icon-192x192.png"
+    },
+    {
+      "name": "Teklifler",
+      "shortName": "Teklifler",
+      "url": "https://crm.onprotech.com.tr/dashboard/teklifler/",
+      "chosenIconUrl": "https://crm.onprotech.com.tr/icon-192x192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://crm.onprotech.com.tr/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": "true",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://crm.onprotech.com.tr/"
+}
