@@ -30,6 +30,24 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Ensure Sube Depo exists in PostgreSQL database
+  const existingSube = await prisma.warehouse.findFirst({
+    where: { name: { contains: "ube" } },
+  });
+  if (!existingSube) {
+    await prisma.warehouse.create({
+      data: {
+        name: "Sube Depo",
+        type: WarehouseType.SUBE,
+        responsible: "Onur Ertekin",
+        isActive: true,
+      },
+    });
+    console.log("Sube Depo eklendi");
+  } else {
+    console.log("Sube Depo zaten var:", existingSube.name);
+  }
+
   // Check if database already has data to prevent wiping user data on re-deploy
   const existingUserCount = await prisma.user.count();
   if (existingUserCount > 0) {
