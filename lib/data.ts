@@ -157,7 +157,17 @@ export async function getProducts(search?: string) {
 }
 
 export async function getProductById(id: string) {
-  return prisma.product.findUnique({ where: { id } });
+  return prisma.product.findUnique({
+    where: { id },
+    include: {
+      warehouseStocks: {
+        include: {
+          warehouse: { select: { id: true, name: true, type: true, isActive: true } },
+        },
+        orderBy: { warehouse: { name: "asc" } },
+      },
+    },
+  });
 }
 
 export async function getLowStockProducts() {

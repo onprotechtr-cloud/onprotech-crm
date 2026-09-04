@@ -91,6 +91,34 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 </p>
               )}
             </div>
+
+            <div className="border-t border-slate-100 pt-4">
+              <h3 className="mb-3 text-sm font-semibold text-slate-900">Depo Dagilimi</h3>
+              {product.warehouseStocks?.length ? (
+                <div className="space-y-2">
+                  {product.warehouseStocks.map((ws) => (
+                    <div
+                      key={ws.id}
+                      className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+                    >
+                      <Link
+                        href={`/dashboard/depolar/${ws.warehouse.id}`}
+                        className="font-medium text-slate-700 hover:text-orange-600"
+                      >
+                        {ws.warehouse.name}
+                      </Link>
+                      <span className="font-semibold text-slate-900">
+                        {ws.quantity} {product.unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  Bu urun henuz hicbir depoda bulunmuyor.
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
